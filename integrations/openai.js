@@ -1,13 +1,22 @@
 // integrations/openai.js
-// Simple Node helper that calls the OpenAI Chat Completions REST API using fetch.
-// Usage: set OPENAI_API_KEY in environment, then call chatWithGPT("Hello")
+// OpenAI helper with Node 18+ fetch support and node-fetch fallback (CommonJS)
 
-const fetch = require('node-fetch');
+let fetchFn;
+if (typeof fetch === 'function') {
+  fetchFn = fetch;
+} else {
+  try {
+    // node-fetch v2 is CommonJS
+    fetchFn = require('node-fetch');
+  } catch (e) {
+    throw new Error('No global fetch available and node-fetch is not installed. Run `npm install` or use Node 18+ which has global fetch.');
+  }
+}
 
 async function chatWithGPT(message) {
   if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY not set');
 
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+  const res = await fetchFn('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
